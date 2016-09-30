@@ -7,15 +7,15 @@
 
 	require __DIR__ . '/vendor/autoload.php';
 
-	require __DIR__ . '/app/Config/constants.php';
+	require __DIR__ . '/src/Config/constants.php';
 
-	$settings = require __DIR__ . '/app/Config/settings.php';
+	$settings = require __DIR__ . '/src/Config/settings.php';
 
 	$app = new \Slim\App( $settings );
 
-	require __DIR__ . '/app/Config/dependencies.php';
-	require __DIR__ . '/app/Module/Middleware/Auth.php';
+	require __DIR__ . '/src/Config/dependencies.php';
+	require __DIR__ . '/src/Middleware/Auth.php';
 
-	require __DIR__ . '/app/Module/Routes/routes.php';
+	require __DIR__ . '/src/Routes/routes.php';
 
 	$app->run();
