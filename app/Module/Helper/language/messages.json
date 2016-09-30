@@ -1,0 +1,49 @@
+{
+	"500":{
+		"en_message": "Server Internal Error",
+		"ar_message": "",
+		"status": 500
+	},
+	"1001":{
+		"en_message": "already have User Login",
+		"ar_message": "",
+		"status": 200
+	},
+	"1002":{
+		"en_message": "Invalid",
+		"ar_message": "",
+		"status": 500
+	},
+	"1003":{
+		"en_message": "Invalid Email",
+		"ar_message": "",
+		"status": 500
+	},
+	"1004":{
+		"en_message": "Login Sucessfull",
+		"ar_message": "",
+		"status": 200
+	},
+	"1005":{
+		"en_message": "Invalid Password",
+		"ar_message": "",
+		"status": 500
+	},
+	"1006":{
+		"en_message": "User is already Exist",
+		"ar_message": "",
+		"status": 500
+	},
+	"1007":{
+		"en_message": "User added",
+		"ar_message": "",
+		"status": 500
+	},
+	"1008":{
+		"en_message": "Sucessfully Logout",
+		"ar_message": "",
+		"status": 200
+	}
+		
+		
+}

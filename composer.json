@@ -1,0 +1,23 @@
+{
+    "require": {
+        "slim/slim": "^3.0",
+        "catfan/medoo": "^1.1",
+        "monolog/monolog": "^1.21",
+        "namshi/jose": "^7.2",
+        "sun/pdf": "^1.0",
+        "twig/twig": "^1.24",
+        "swiftmailer/swiftmailer": "^5.4",
+        "hautelook/phpass": "^1.0",
+        "wixel/gump": "^1.3",
+        "lcobucci/jwt": "^3.2",
+        "ramsey/uuid": "^3.5",
+        "maciejczyzewski/bottomline": "^0.0.7"
+    },
+     "autoload": {
+        "psr-4": {
+            "Controller\\": "app/Module", 
+            "Helper\\": "app/Module", 
+            "Middleware\\": "app/Module"
+        }
+     }
+}
