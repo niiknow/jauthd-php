@@ -12,7 +12,10 @@ use Ramsey\Uuid\Exception\UnsatisfiedDependencyException;
 
 class AuthHelper
 {
-  
+  function __construct($app) {
+    $this->PasswordHasher = new PasswordHash(12, false);
+  }
+
   /**
    * hash a password
    * @param  $password unencrypted password
@@ -20,7 +23,7 @@ class AuthHelper
    */
   public function hashPassword($password)
   {
-    return password_hash($password, PASSWORD_DEFAULT);
+    return $this->PasswordHasher->HashPassword($password),
   }
 
   /*
@@ -31,7 +34,7 @@ class AuthHelper
    */
   public function comparePassword($password, $hashedPassword) 
   {
-    return password_verify($password, $hashedPassword);
+    return $this->PasswordHasher->CheckPassword($password, $hashedPassword);
   }
 
   /**
