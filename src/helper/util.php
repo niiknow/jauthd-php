@@ -2,9 +2,9 @@
 
 require 'bottomline/bottomline.php';
 
-namespace JAuth\Helper;
+namespace MyAPI\Helper;
 
-use JAuth\Storage
+use MyAPI\Storage
 
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\Exception\UnsatisfiedDependencyException;

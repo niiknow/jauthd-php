@@ -1,5 +1,5 @@
 <?php
-namespace JAuth\Controllers;
+namespace MyAPI\Controllers;
 /**
  * HomeController handles our '/' route.
  */

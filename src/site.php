@@ -1,5 +1,5 @@
 <?php
-namespace JAuth;
+namespace MyAPI;
 use Slim\App as Slim;
 
 /**

@@ -1,5 +1,5 @@
 <?php
-namespace JAuth\Storage;
+namespace MyAPI\Storage;
 
 // Declare the interface 'iTemplate'
 interface iStorage {

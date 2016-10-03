@@ -1,5 +1,5 @@
 <?php
-namespace JAuth\Helper;
+namespace MyAPI\Helper;
 
 use Lcobucci\JWT\Builder;
 use Lcobucci\JWT\Signer\Hmac\Sha256;

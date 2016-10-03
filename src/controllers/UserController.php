@@ -1,6 +1,6 @@
 <?php
 
-namespace JAuth\Controllers;
+namespace MyAPI\Controllers;
 
 class UserController extends Controller {
 	public function postChangePassword() {

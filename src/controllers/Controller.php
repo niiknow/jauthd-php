@@ -1,7 +1,7 @@
 <?php
-namespace JAuth\Controller;
+namespace MyAPI\Controller;
 
-use JAuth\Helper\Util as Util;
+use MyAPI\Helper\Util as Util;
 
 /**
  * Base Controller class, all other controllers should extend this class.

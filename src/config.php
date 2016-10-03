@@ -66,7 +66,7 @@ return [
 		'port' => getenv('MAIL_PORT'),
 		'username' => getenv('MAIL_USERNAME'),
 		'password' => getenv('MAIL_PASSWORD'),
-		'auth' => getenv('MAIL_USERNAME') or false,
+		'auth' => getenv('MAIL_USERNAME') ? true : false,
 		'TLS' => false,
 		'from' => [
 			'name' => 'friends',
@@ -85,6 +85,6 @@ return [
 		$mailer->FromName = $container['config']['mail']['from']['name'];
 		$mailer->From = $container['config']['mail']['from']['email'];
 		$mailer->isHTML(true);
-		return new \JAuth\Mail\Mailer($mailer, $container);
+		return new \MyAPI\Mail\Mailer($mailer, $container);
 	},
 ];

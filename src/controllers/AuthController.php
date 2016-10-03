@@ -56,7 +56,7 @@ class AuthController extends Controller {
 		if (isset($user['id'])) {
 			$token = $this->authHelper->generateForgotPasswordToken($id);
 			// send reset email
-			$emailResetTemplate = getenv('MAIL_RESETPASSWORDTEMPLATE');
+			$emailResetTemplate = getenv('MAIL_PASSWORD_RESET');
 			if ($emailResetTemplate) {
 				$uri = $this->request->getUri();
 				// send registration email
@@ -64,8 +64,6 @@ class AuthController extends Controller {
 					['user' => $user, 'token' => $token, 'uri' => $uri],
 					function ($message) use ($user) {
 						$message->to($user->email);
-						$host = $uri->getHost();
-						$message->subject('password recovery');
 					});
 				$this->storage->forgotPassword()
 			}
@@ -88,6 +86,14 @@ class AuthController extends Controller {
 		}
 
 		return $this->apiError(1002);
+	}
+
+    /**
+     * [getResetPassword description]
+     * @return [type] [description]
+     */
+	public function getResetPassword() {
+		return $this->render('auth/resetpassword');
 	}
 
 	/**
@@ -168,7 +174,7 @@ class AuthController extends Controller {
 
 		if ($userId) {
 			$token = $this->authHelper->generateEmailConfirmationToken($userId);
-			$emailVerifyTemplate = getenv('MAIL_VERIFYTEMPLATE');
+			$emailVerifyTemplate = getenv('MAIL_VERIFY');
 			if ($emailVerifyTemplate) {
 				$uri = $this->request->getUri();
 
@@ -177,8 +183,6 @@ class AuthController extends Controller {
 					['user' => $user, 'token' => $token, 'uri' => $uri],
 					function ($message) use ($user) {
 						$message->to($user->email);
-						$host = $uri->getHost();
-						$message->subject('Welcome to ' . $host);
 					});
 			}
 

@@ -1,6 +1,6 @@
 <?php
 
-use JAuth\Site as MyApp;
+use MyAPI\Site as MyApp;
 use Slim\Container;
 define('INC_ROOT', dirname(__DIR__));
 

@@ -1,5 +1,5 @@
 <?php
-namespace JAuth\Storage;
+namespace MyAPI\Storage;
 
 class MedooStorage implements iStorage {
 	private $tables = [];

@@ -1,6 +1,6 @@
 <?php
 
-namespace JAuth\Controllers;
+namespace MyAPI\Controllers;
 
 class AuthSocialController extends Controller {
 	public function postGoogle() {
