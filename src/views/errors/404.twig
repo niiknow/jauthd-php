@@ -1,0 +1,7 @@
+{% extends 'layout.twig' %}
+{% block content %}
+<div class="page-header">
+    <h1><strong>404</strong> | That's an error.</h1>
+</div>
+<h4>The requested URL <strong>{{ request_uri|escape }}</strong> was not found on this server. <br></h4>
+{% endblock %}

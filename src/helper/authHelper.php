@@ -1,5 +1,5 @@
 <?php
-namespace App\Helper;
+namespace JAuth\Helper;
 
 use Lcobucci\JWT\Builder;
 use Lcobucci\JWT\Signer\Hmac\Sha256;
@@ -10,33 +10,11 @@ use \stdClass;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\Exception\UnsatisfiedDependencyException;
 
+/**
+ * Auth Helper
+ */
 class AuthHelper
 {
-  function __construct($app) {
-    $this->PasswordHasher = new PasswordHash(12, false);
-  }
-
-  /**
-   * hash a password
-   * @param  $password unencrypted password
-   * @return the hashed result
-   */
-  public function hashPassword($password)
-  {
-    return $this->PasswordHasher->HashPassword($password),
-  }
-
-  /*
-   * compare regular password to existing/hashed password
-   * @param  $password       
-   * @param  $hashedPassword 
-   * @return true if valid
-   */
-  public function comparePassword($password, $hashedPassword) 
-  {
-    return $this->PasswordHasher->CheckPassword($password, $hashedPassword);
-  }
-
   /**
    * determine of email confirmation token is valid
    * @param  $token the token
@@ -96,7 +74,32 @@ class AuthHelper
         return false;
     }
 
-    return $token->verify(APP_TOKEN_JWT_ISSUER, $key));
+    return $token->verify(APP_TOKEN_JWT_ISSUER, $key);
+  }
+
+  /**
+   * generate login token
+   * @param  $user the user object
+   * @param  $expiresIn expire in second
+   * @param  $access_type 'offline' or not
+   */
+  public generateLoginToken($user, $expiresIn, $access_type, $isPayload) {
+    $tokenPayload = $isPayload ? $user : __::Pick($user, getenv('JWT_INCLUDES'));
+    $access_token = $this->generateToken($tokenPayload, '', $expiresIn);
+    $result = [
+      'profile' => $tokenPayload,
+      'access_token' => $access_token['token'],
+      'expires_in' => $access_token['expires_in'],
+    ];
+
+    if ($access_type === 'offline') {
+      $result['refresh_token'] = $this->generateToken([
+        'sub' => $user['id'],
+        'profile' => $tokenPayload
+        ], 'refresh', getenv('JWT_REFRESH_AGE'))['token'];
+    }
+
+    return result;
   }
 
   /**
@@ -127,7 +130,7 @@ class AuthHelper
     }
 
     $opts['expiresIn'] = $expiresIn || $opts['expiresIn'];
-    $pl2 = __::pluck($pl, 'foo');
+    $pl2 = __::pluck($pl, 'password');
     foreach($pl2 as $key => $value){
       $token->set($key, $value);
     }
@@ -143,14 +146,13 @@ class AuthHelper
       ->setNotBefore(time())// Configures the time that the token can be used (nbf claim)
       ->setExpiration($expiresIn);
 
-
     $signer = new Sha256();
     $token->sign($signer, $key);// creates a signature
 
-    $result = []
+    $result = [
       'expires_in' => $opts['expiresIn'],
       'token' => $token->getToken();
-    };
+    ]};
 
     return $result;
   }

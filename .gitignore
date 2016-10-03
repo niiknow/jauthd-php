@@ -1,1 +1,5 @@
 .DS_STORE
+.phpintel/
+vendor/
+.env
+*.lock
