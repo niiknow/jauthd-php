@@ -16,6 +16,7 @@ class Controllers {
 		$this->util = new Util();
 		$this->storage = $this->util->getStorage();
 		$this->authHelper = new AuthHelper();
+		$app->env['MYAPP_HOSTNAME'] = $request->getUri()->getHostName();
 	}
 	public function __get($property) {
 		if ($this->container->{$property}) {

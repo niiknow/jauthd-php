@@ -1,14 +1,9 @@
 <?php
 namespace MyAPI\Helper;
 
-use Lcobucci\JWT\Builder;
-use Lcobucci\JWT\Signer\Hmac\Sha256;
-use Lcobucci\JWT\ValidationData;
-use Lcobucci\JWT\Parser;
-use \stdClass;
+use \Firebase\JWT\JWT;
 
 use Ramsey\Uuid\Uuid;
-use Ramsey\Uuid\Exception\UnsatisfiedDependencyException;
 
 /**
  * Auth Helper
@@ -33,7 +28,7 @@ class AuthHelper
    */
   public function generateEmailConfirmationToken($sub, $expiresIn) 
   {
-    return $this->generateToken(['sub' => $sub ], 'emailConfirm', $expiresIn || APP_TOKEN_EXPIRES_OTHER);
+    return $this->generateToken(['sub' => $sub ], 'emailConfirm', $expiresIn);
   }
 
   /**
@@ -54,7 +49,7 @@ class AuthHelper
    */
   public function generateForgotPasswordToken($sub, $expiresIn) 
   {
-    return $this->generateToken(['sub' => $sub ], 'forgotPassword', $expiresIn || APP_TOKEN_EXPIRES_OTHER);
+    return $this->generateToken(['sub' => $sub ], 'forgotPassword', $expiresIn);
   }
 
   /**
@@ -66,15 +61,9 @@ class AuthHelper
   public function verifyToken($tokenString, $tokenType) 
   {
     $tokenType = $tokenType || '';
-    $key = APP_TOKEN_JWT_SECRET + $tokenType;
+    $key = getenv('JWT_SECRET') + $tokenType;
 
-    try {
-        $token = $this->decodeToken($tokenString);
-    } catch (\Exception $e) {
-        return false;
-    }
-
-    return $token->verify(APP_TOKEN_JWT_ISSUER, $key);
+    return $this->decodeToken($tokenString, $key);
   }
 
   /**
@@ -112,15 +101,13 @@ class AuthHelper
   public function generateToken($payload, $tokenType, $expiresIn) 
   {
     $tokenType = $tokenType || '';
-    $defaults = [];
-    $opts = array_merge($defaults, APP_TOKEN_JWT);
-    $key = APP_TOKEN_JWT_SECRET + $tokenType;
+    $key = getenv('JWT_SECRET') + $tokenType;
 
-    $maxExpires = APP_TOKEN_MAXAGE_AUTH;
+    $maxExpires = getenv('JWT_AUTH_AGE') or 3600;
     $pl = array_merge_(['jti' => Uuid::uuid4()], $payload)
 
     if ($tokenType) {
-      $maxExpires = APP_TOKEN_MAXAGE_OTHER;
+      $maxExpires = getenv('JWT_OTHER_AGE');
     }
 
     if ($expiresIn) {
@@ -130,40 +117,41 @@ class AuthHelper
     }
 
     $opts['expiresIn'] = $expiresIn || $opts['expiresIn'];
+    /*
     $pl2 = __::pluck($pl, 'password');
     foreach($pl2 as $key => $value){
       $token->set($key, $value);
-    }
-
-    $token = (new Builder());
-    foreach($pl2 as $key => $value){
-      $token->set($key, $value);
-    }
-
-    $token->setHeader('alg','RS256')
-      ->setIssuer(APP_TOKEN_JWT_ISSUER)
-      ->setIssuedAt(time())// Configures the time that the token was issue (iat claim)
-      ->setNotBefore(time())// Configures the time that the token can be used (nbf claim)
-      ->setExpiration($expiresIn);
-
-    $signer = new Sha256();
-    $token->sign($signer, $key);// creates a signature
+    }*/
 
     $result = [
       'expires_in' => $opts['expiresIn'],
       'token' => $token->getToken();
     ]};
 
+    $token = array(
+        "iss" => $app->environment["MYAPP_HOSTNAME"] or 'JAuth',
+        "jti" => $pl['jti'],
+        "sub" => $pl['sub'] or $pl['id'],
+        "exp" => $opts['expiresIn'], // or 'ttl' => 60
+        "iat" => time(),
+        "nbf" => time(),
+        "roles" => $opt['roles']);
+ 
+    $jwt = \JWT::encode($token, $key);
+    
+    $result = [
+      'expires_in' => $opts['expiresIn'],
+      'token' => $jwt;
+    ]};
+
     return $result;
   }
 
   /**
-   * allow for decoding of jwg
-   * @param  {[type]} token the token
-   * @return {[type]}       the decoded token
+   * allow for decoding of jwt
    */
-  public function decodeToken($token) 
+  private function decodeToken($token, $key) 
   {
-    return (new Parser())->parse($token);
+    return \JWT::decode($jwt, $key, array('HS256'));;
   }
 }
