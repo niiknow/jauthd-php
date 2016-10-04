@@ -1,11 +1,10 @@
 <?php
 namespace MyAPI;
-use Slim\App as Slim;
 
 /**
  * Site is used to hook everything together.
  */
-class Site extends Slim {
+class Site extends \Slim\App {
 	/**
 	 * Customized route mapping.
 	 */

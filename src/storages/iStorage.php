@@ -1,5 +1,5 @@
 <?php
-namespace MyAPI\Storage;
+namespace MyAPI\Storages;
 
 // Declare the interface 'iTemplate'
 interface iStorage {
@@ -31,11 +31,9 @@ interface iStorage {
 	 * - allow storage to handle email verification event
 	 * @param  $tenantCode tenant code
 	 * @param  $user the user object
-	 * @param  $baseUrl the site base url
-	 * @param  $emailVerifyToken email verification token
 	 * @return userid for success
 	 */
-	public function insertUser($tenantCode, $user, $baseUrl, $emailVerifyToken);
+	public function insertUser($tenantCode, $user);
 
 	/**
 	 * delete user

@@ -1,22 +1,25 @@
 <?php
-namespace MyAPI\Controller;
+namespace MyAPI\Controllers;
 
-use MyAPI\Helper\Util as Util;
+use MyAPI\Helpers\Util as Util;
 
 /**
  * Base Controller class, all other controllers should extend this class.
  */
-class Controllers {
+class Controller {
 	protected $request, $response, $args, $container;
 	public function __construct($request, $response, $args, $container) {
+		// create storage base on configuration
+		$db_storage = getenv('DB_STORAGE') ? getenv('DB_STORAGE') : 'MyAPI\Storages\MedooStorage';
+		$dbinfo = $container->get('settings')['dbinfo'];
+		$this->storage = new $db_storage($dbinfo);
 		$this->request = $request;
 		$this->response = $response;
 		$this->args = $args;
 		$this->container = $container;
 		$this->util = new Util();
-		$this->storage = $this->util->getStorage();
-		$this->authHelper = new AuthHelper();
-		$app->env['MYAPP_HOSTNAME'] = $request->getUri()->getHostName();
+		$this->authHelper = new \MyAPI\Helpers\AuthHelper();
+		$app->env['MYAPP_HOSTNAME'] = $request->getUri()->getHost();
 	}
 	public function __get($property) {
 		if ($this->container->{$property}) {
@@ -31,7 +34,7 @@ class Controllers {
 		return $this->response->withRedirect($this->router()->pathFor($path));
 	}
 	public function validator() {
-		return new GUMP();
+		return new \GUMP();
 	}
 	public function router() {
 		return $this->container->router;
@@ -46,10 +49,10 @@ class Controllers {
 		return $this->container->mail;
 	}
 	public function apiSuccess($data) {
-		return $this->response->withJson(['data' => $data], 200);
+		return $this->response->withJson(['data' => $data, 'status' => 200], 200);
 	}
 	public function apiError($code, $mes = [], $lang = 'en') {
-		$messages = json_decode(file_get_contents(INC_ROOT . "/language/messages.json"), true);
+		$messages = json_decode(file_get_contents(INC_ROOT . "/src/language/message.json"), true);
 
 		if (empty($mes)) {
 

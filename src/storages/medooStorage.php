@@ -1,15 +1,15 @@
 <?php
-namespace MyAPI\Storage;
+namespace MyAPI\Storages;
 
 class MedooStorage implements iStorage {
-	private $tables = [];
+	private static $tables = [];
 
 	/**
 	 * constructor, expect
 	 */
 	function __construct($dbinfo) {
-		$this->myDB = new medoo($dbinfo);
-		$this->util = new Util();
+		$this->util = new \MyAPI\Helpers\Util();
+		$this->myDB = new \medoo($dbinfo);
 	}
 
 	/**
@@ -18,13 +18,13 @@ class MedooStorage implements iStorage {
 	 * @return the tenant table name
 	 */
 	public function getTenantTable($tenantCode) {
-		$tenantCode = $tenantCode or '';
+		$tenantCode = isset($tenantCode) ? $tenantCode : '';
 		$tableName = $tenantCode . '_user';
 
-		if (!isset($tables[$tableName])) {
+		if (!isset(self::$tables[$tableName])) {
 			// create the table
-			$tables[$tableName] = true;
-			$sql = "CREATE TABLE IF NOT EXISTS `" . $tableName
+			self::$tables[$tableName] = time();
+			$sql = "CREATE TABLE IF NOT EXISTS " . $tableName
 				. "(
   id          char(36) NOT NULL,
   email       varchar(50) NOT NULL,
@@ -36,7 +36,7 @@ class MedooStorage implements iStorage {
   social      varchar(20000) NOT NULL,
   secure      varchar(20000) NOT NULL,
   INDEX (id),
-  INDEX (email)
+  UNIQUE (email)
 )";
 			$this->myDB->query($sql);
 		}
@@ -74,23 +74,23 @@ class MedooStorage implements iStorage {
 	 */
 	public function insertUser($tenantCode, $user) {
 		// make email
+		// echo json_encode($user);
 		$user['email'] = $this->util->strtolower($user['email']);
 		$user['id'] = $this->util->oid($user['email']);
 		$user['password'] = $this->util->hashPassword($user['password']);
-
-		$profile = json_decode($user['profile'], true)
+		$profile = json_decode(isset($user['profile']) ? $user['profile'] : '{}', true);
+		$profile['lastName'] = isset($profile['lastName']) ? $profile['lastName'] : '';
 		$addUser = $this->myDB->insert($this->getTenantTable($tenantCode),
 			[
 				'id' => $user['id'],
 				'email' => $user['email'],
 				'password' => $user['password'],
 				'roles' => '',
-				'searchName' => $user['searchName'] or $profile['lastName'],
-				'profile' => $user['profile'] or '{}',
-				'social' => $user['social'] or '{}',
-				'secure' => $user['secure'] or '{}',
+				'searchName' => isset($user['searchName']) ? $profile['searchName'] : $profile['lastName'],
+				'profile' => isset($user['profile']) ? $user['profile'] : '{}',
+				'social' => isset($user['social']) ? $user['social'] : '{}',
+				'secure' => isset($user['secure']) ? $user['secure'] : '{}',
 			]);
-
 		return $user['id'];
 	}
 
@@ -222,18 +222,18 @@ class MedooStorage implements iStorage {
 	 * -
 	 * - searchName is use to allow for a single column index and filtering, it's not the best
 	 * - solution but it is better than nothing
-	 * 
+	 *
 	 * @param  $tenantCode tenant code
 	 * @param  $searchName
 	 * @param  $pageSize how may to get
 	 * @param  $offset how many to skip
 	 * @return the storage object
 	 */
-	public function searchUsers($tenantCode, $searchName, $pageSize, $offset = 0){
-		$this->myDB->select($this->getTenantTable($tenantCode), 
-			['id', 'email', 'password', 'roles', 'searchName', 'profile', 'social'], 
-			['searchName[~]' => $searchName ],
+	public function searchUsers($tenantCode, $searchName, $pageSize, $offset = 0) {
+		$this->myDB->select($this->getTenantTable($tenantCode),
+			['id', 'email', 'password', 'roles', 'searchName', 'profile', 'social'],
+			['searchName[~]' => $searchName],
 			["ORDER" => "searchName ASC", "LIMIT" => [$pageSize, $offset]]
-	    );
+		);
 	}
 }

@@ -15,7 +15,7 @@ class UserController extends Controller {
 
 	}
 
-	public function deleteRole() {
+	public function PostDeleteRole() {
 
 	}
 }

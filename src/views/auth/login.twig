@@ -1,9 +1,9 @@
-{% extends '../layout.twig' %}
+{% extends 'layout.twig' %}
 
 {% block content %}
 <div class="col-sm-6 col-sm-offset-3">
 	<h1><span class="fa fa-sign-in"></span> Login</h1>
-	<form action="/auth/token" method="post">
+	<form action="/auth/login" method="post">
 		<div class="form-group">
 			<label for="email">Email</label>
 			<input id="email" name="email" class="form-control" type="text">
@@ -16,7 +16,7 @@
 		<a href="/forgotpassword" class="btn btn-link">Forgot password?</a>
 	</form>
 	<hr>
-	<p>Need an account? <a href="/register">Signup</a></p>
+	<p>Need an account? <a href="/signup">Signup</a></p>
 	<p>Or go <a href="/">home</a></p>
 </div>
 {% endblock %}

@@ -1,6 +1,6 @@
 <?php
 
-namespace JAuth\Controllers;
+namespace MyAPI\Controllers;
 
 class AuthController extends Controller {
 	/**
@@ -23,18 +23,20 @@ class AuthController extends Controller {
 		$user = $this->storage->getUser($this->queryParam('tenantCode'), $id);
 
 		// validate password
-		$isValid = $this->util->comparePassword($this->util->hashPassword($params['password']), $user['password']);
+		$isValid = $this->util->comparePassword($params['password'], $user['password']);
 		if (!$isValid) {
 			return $this->apiError(1003);
 		}
 
 		$profile = json_decode($user['profile']);
 		$payload = [
-		  'roles' = $user['roles']
+			'id' => $id,
+			'roles' => $user['roles'],
 		];
 
 		// return token
-		$token = $this->authHelper->generateLoginToken($payload, null, $params['access_type']);
+		$access_type = isset($params['access_type']) ? $params['access_type'] : 'offline';
+		$token = $this->authHelper->generateLoginToken($payload, null, $access_type);
 		return $this->apiSuccess($token);
 	}
 
@@ -65,7 +67,7 @@ class AuthController extends Controller {
 					function ($message) use ($user) {
 						$message->to($user->email);
 					});
-				$this->storage->forgotPassword()
+				$this->storage->forgotPassword();
 			}
 
 			return $this->apiSuccess($user);
@@ -88,10 +90,10 @@ class AuthController extends Controller {
 		return $this->apiError(1002);
 	}
 
-    /**
-     * [getResetPassword description]
-     * @return [type] [description]
-     */
+	/**
+	 * [getResetPassword description]
+	 * @return [type] [description]
+	 */
 	public function getResetPassword() {
 		return $this->render('auth/resetpassword');
 	}
@@ -137,7 +139,7 @@ class AuthController extends Controller {
 	 */
 	public function getVerifyEmail() {
 		$etoken = $this->args['etoken'];
-		
+
 		$isValid = $this->authHelper->verifyEmailConfirmationToken($etoken);
 		if ($isValid) {
 			$token = $this->authHelper->decodeToken($etoken);
@@ -160,7 +162,7 @@ class AuthController extends Controller {
 		$isValid = $validator->validate($params, [
 			"email" => "required|valid_email",
 			"password" => "required|max_len,100|min_len,8",
-			"profile" => "required|valid_json_string",
+			"profile" => "valid_json_string",
 			"social" => "valid_json_string",
 			"secure" => "valid_json_string",
 		]);
@@ -173,9 +175,9 @@ class AuthController extends Controller {
 		$userId = $this->storage->insertUser($this->queryParam('tenantCode'), $params);
 
 		if ($userId) {
-			$token = $this->authHelper->generateEmailConfirmationToken($userId);
 			$emailVerifyTemplate = getenv('MAIL_VERIFY');
 			if ($emailVerifyTemplate) {
+				$token = $this->authHelper->generateEmailConfirmationToken($userId);
 				$uri = $this->request->getUri();
 
 				// send registration email

@@ -1,12 +1,12 @@
 {% extends 'base.html.twig' %}
 
-{% block subject %}{{ data->uri->getHostName() }} - Verify Your Email{% endblock %}
+{% block subject %}{{ data->uri->getHost() }} - Verify Your Email{% endblock %}
 
 {% block content %}
   <h4>Hey {{ data->user->profile->firstName }},</h4>
 
   <p>
-      Thanks for signing up with us at {{ data->uri->getHostName() }}!
+      Thanks for signing up with us at {{ data->uri->getHost() }}!
   </p>
 
   <p>

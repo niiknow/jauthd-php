@@ -6,12 +6,12 @@ return [
 		'displayErrorDetails' => true,
 		'viewTemplateDirectory' => '/views',
 		'dbinfo' => [
-			'database_type' => getenv('DB_TYPE') or 'mysql',
-			'database_name' => getenv('DB_DATABASE') or 'mydb',
-			'server' => getenv('DB_HOST') or '127.0.0.1',
-			'username' => getenv('DB_USERNAME') or 'root',
+			'database_type' => getenv('DB_TYPE'),
+			'database_name' => getenv('DB_DATABASE'),
+			'server' => getenv('DB_HOST'),
+			'username' => getenv('DB_USERNAME'),
 			'password' => getenv('DB_PASSWORD'),
-			'charset' => getenv('DB_CHARSET') or 'utf8',
+			'charset' => getenv('DB_CHARSET'),
 		],
 		'excludedRoutes' => [],
 	],
@@ -20,13 +20,13 @@ return [
 		return $twig;
 	},
 	'view' => function ($container) {
-		$view = new \Slim\Views\Twig($container['settings']['viewTemplateDirectory'], [
+		$view = new \Slim\Views\Twig(__DIR__ . $container['settings']['viewTemplateDirectory'], [
 			'debug' => true,
 		]);
 		$view->addExtension(new \Slim\Views\TwigExtension($container['router'], $container['request']->getUri()));
 		return $view;
 	},
-	'logger' => function($container) {
+	'logger' => function ($container) {
 		$settings = $container->get('settings');
 		$logger = new Logger($settings['logger']['name']);
 		$rotating = new RotatingFileHandler(__DIR__ . $settings['logger']['path'], 0, Logger::DEBUG);
@@ -61,30 +61,31 @@ return [
 	},
 	'config' => [
 		'mail' => [
-		'type' => 'smtp',
-		'host' => getenv('MAIL_HOST'),
-		'port' => getenv('MAIL_PORT'),
-		'username' => getenv('MAIL_USERNAME'),
-		'password' => getenv('MAIL_PASSWORD'),
-		'auth' => getenv('MAIL_USERNAME') ? true : false,
-		'TLS' => false,
-		'from' => [
-			'name' => 'friends',
-			'email' => getenv('MAIL_FROM'),
+			'type' => 'smtp',
+			'host' => getenv('MAIL_HOST'),
+			'port' => getenv('MAIL_PORT'),
+			'username' => getenv('MAIL_USERNAME'),
+			'password' => getenv('MAIL_PASSWORD'),
+			'auth' => getenv('MAIL_USERNAME') ? true : false,
+			'TLS' => false,
+			'from' => [
+				'name' => 'friends',
+				'email' => getenv('MAIL_FROM'),
+			],
 		],
+		'mail' => function ($container) {
+			$mailer = new PHPMailer();
+			$mailer->isSMTP();
+			$mailer->Host = $container['config']['mail']['host'];
+			$mailer->SMTPAuth = $container['config']['mail']['auth'];
+			$mailer->SMTPSecure = $container['config']['mail']['TLS'];
+			$mailer->Port = $container['config']['mail']['port'];
+			$mailer->Username = $container['config']['mail']['username'];
+			$mailer->Password = $container['config']['mail']['password'];
+			$mailer->FromName = $container['config']['mail']['from']['name'];
+			$mailer->From = $container['config']['mail']['from']['email'];
+			$mailer->isHTML(true);
+			return new \MyAPI\Mail\Mailer($mailer, $container);
+		},
 	],
-	'mail' => function ($container) {
-		$mailer = new PHPMailer();
-		$mailer->isSMTP();
-		$mailer->Host = $container['config']['mail']['host'];
-		$mailer->SMTPAuth = $container['config']['mail']['auth'];
-		$mailer->SMTPSecure = $container['config']['mail']['TLS'];
-		$mailer->Port = $container['config']['mail']['port'];
-		$mailer->Username = $container['config']['mail']['username'];
-		$mailer->Password = $container['config']['mail']['password'];
-		$mailer->FromName = $container['config']['mail']['from']['name'];
-		$mailer->From = $container['config']['mail']['from']['email'];
-		$mailer->isHTML(true);
-		return new \MyAPI\Mail\Mailer($mailer, $container);
-	},
 ];
