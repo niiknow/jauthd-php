@@ -2,7 +2,7 @@
 
 return [
 	'settings' => [
-		'determineRouteBeforeAppMiddleware' => true,
+		'determineRouteBeforeAppMiddleware' => false,
 		'displayErrorDetails' => true,
 		'viewTemplateDirectory' => '/views',
 		'dbinfo' => [
