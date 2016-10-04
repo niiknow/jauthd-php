@@ -1,5 +1,5 @@
 <?php
-namespace MyAPI\Storages;
+namespace MyAPI\Lib\Storages;
 
 class MedooStorage implements iStorage {
 	private static $tables = [];
@@ -8,7 +8,7 @@ class MedooStorage implements iStorage {
 	 * constructor, expect
 	 */
 	function __construct($dbinfo) {
-		$this->util = new \MyAPI\Helpers\Util();
+		$this->util = new \MyAPI\Lib\Util();
 		$this->myDB = new \medoo($dbinfo);
 	}
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace JAuth\Mail;
+namespace MyAPI\Lib\Mail;
 
 class Message {
 	protected $mailer;

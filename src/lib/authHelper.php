@@ -1,5 +1,5 @@
 <?php
-namespace MyAPI\Helpers;
+namespace MyAPI\Lib;
 
 use Ramsey\Uuid\Uuid;
 use \Firebase\JWT\JWT;

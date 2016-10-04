@@ -1,5 +1,5 @@
 <?php
-namespace MyAPI\Mail;
+namespace MyAPI\Lib\Mail;
 
 class Mailer {
 	protected $mailer, $container, $view;
@@ -13,7 +13,7 @@ class Mailer {
 		$body = $this->view->render($template, [
 			'data' => $data,
 		]);
-		
+
 		$template = $this->view->loadTemplate($template);
 		$subject = $template->renderBlock('subject', [
 			'data' => $data,

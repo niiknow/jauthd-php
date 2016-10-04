@@ -188,3 +188,16 @@ class AuthController extends Controller {
 		}
 	}
 }
+
+$app->group('/api/auth', function () {
+	$this->route(['POST'], '/forgotpassword', \MyAPI\Controllers\AuthController::class, 'postForgotPassword')->setName('auth.password.forgot');
+	$this->route(['POST'], '/login', \MyAPI\Controllers\AuthController::class, 'UserLogin')->setName('auth.login');
+	$this->route(['POST'], '/resetpassword/{rtoken}', \MyAPI\Controllers\AuthController::class, 'postResetPassword')->setName('auth.password.reset');
+	$this->route(['POST'], '/signup', \MyAPI\Controllers\AuthController::class, 'SignUp')->setName('auth.signup');
+	$this->route(['GET'], '/emailconfirm/{etoken}', \MyAPI\Controllers\AuthController::class, 'getConfirmEmail')->setName('auth.email.confirm');
+});
+
+$app->group('/api/auth', function () {
+	$this->route(['GET'], '/me', \MyAPI\Controllers\AuthController::class, 'Me')->setName('auth.me');
+	$this->route(['GET'], '/tokeninfo', \MyAPI\Controllers\AuthController::class, 'TokenInfo')->setName('auth.password.reset');
+});

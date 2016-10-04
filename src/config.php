@@ -5,6 +5,10 @@ return [
 		'determineRouteBeforeAppMiddleware' => false,
 		'displayErrorDetails' => true,
 		'viewTemplateDirectory' => '/views',
+		'logger' => [
+			'name' => 'myapi',
+			'path' => '/data/logs/myapi.log',
+		],
 		'dbinfo' => [
 			'database_type' => getenv('DB_TYPE'),
 			'database_name' => getenv('DB_DATABASE'),
@@ -28,8 +32,8 @@ return [
 	},
 	'logger' => function ($container) {
 		$settings = $container->get('settings');
-		$logger = new Logger($settings['logger']['name']);
-		$rotating = new RotatingFileHandler(__DIR__ . $settings['logger']['path'], 0, Logger::DEBUG);
+		$logger = new \Monolog\Logger($settings['logger']['name']);
+		$rotating = new \Monolog\Handler\RotatingFileHandler(__DIR__ . $settings['logger']['path'], 0, \Monolog\Logger::DEBUG);
 		$logger->pushHandler($rotating);
 		return $logger;
 	},
@@ -59,6 +63,54 @@ return [
 			]);
 		};
 	},
+	'JwtAuthentication' => function ($container) {
+		$jwtAuth = new \Slim\Middleware\JwtAuthentication([
+			"path" => "/api",
+			"passthrough" => [
+				"/auth/forgotpassword",
+				"/auth/login",
+				"/auth/resetpassword/{rtoken}",
+				"/auth/signup",
+				"/auth/emailconfirm/{etoken}",
+				"/auth/google",
+				"/auth/facebook",
+				"/auth/twitter",
+				"/auth/github"],
+			"secret" => getenv("JWT_SECRET"),
+			"logger" => $container["logger"],
+			//"relaxed" => ["192.168.50.52"],
+			"error" => function ($request, $response, $arguments) {
+				$data["status"] = "error";
+				$data["message"] = $arguments["message"];
+				return $response
+					->withHeader("Content-Type", "application/json")
+					->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+			},
+			"callback" => function ($request, $response, $arguments) use ($container) {
+				$container["token"]->hydrate($arguments["decoded"]);
+			},
+		]);
+
+		return $jwtAuth;
+	},
+	'Cors' => function ($container) {
+		return new \Tuupola\Middleware\Cors([
+			"logger" => $container["logger"],
+			"origin" => ["*"],
+			"methods" => ["GET", "POST", "OPTIONS"],
+			"headers.allow" => ["Authorization", "If-Match", "If-Unmodified-Since"],
+			"headers.expose" => ["Authorization", "Etag"],
+			"credentials" => true,
+			"cache" => 60,
+			"error" => function ($request, $response, $arguments) {
+				$data["status"] = "error";
+				$data["message"] = $arguments["message"];
+				return $response
+					->withHeader("Content-Type", "application/json")
+					->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+			},
+		]);
+	},
 	'config' => [
 		'mail' => [
 			'type' => 'smtp',
@@ -85,7 +137,7 @@ return [
 			$mailer->FromName = $container['config']['mail']['from']['name'];
 			$mailer->From = $container['config']['mail']['from']['email'];
 			$mailer->isHTML(true);
-			return new \MyAPI\Mail\Mailer($mailer, $container);
+			return new \MyAPI\Lib\Mail\Mailer($mailer, $container);
 		},
 	],
 ];

@@ -1,9 +1,8 @@
 <?php
-global $app;
 define('INC_ROOT', dirname(__DIR__));
 
 require_once INC_ROOT . '/vendor/autoload.php';
-$dotenv = new Dotenv\Dotenv(__DIR__ . '/../');
+$dotenv = new Dotenv\Dotenv(INC_ROOT);
 $dotenv->load();
 
 require 'site.php';

@@ -19,9 +19,9 @@
     },
     "autoload": {
         "psr-4": {
-            "MyAPI\\Helpers\\": "src/helper",
-            "MyAPI\\Storages\\": "src/storages",
-            "MyAPI\\Controllers\\": "src/controllers"
+            "MyAPI\\Lib\\": "src/lib",
+            "MyAPI\\Lib\\Storages\\": "src/lib/storages",
+            "MyAPI\\Lib\\Mail\\": "src/lib/mail"
         }
     },
     "minimum-stability": "dev"

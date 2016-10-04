@@ -1,7 +1,7 @@
 <?php
 namespace MyAPI\Controllers;
 
-use MyAPI\Helpers\Util as Util;
+use MyAPI\Lib\Util as Util;
 
 /**
  * Base Controller class, all other controllers should extend this class.
@@ -10,7 +10,7 @@ class Controller {
 	protected $request, $response, $args, $container;
 	public function __construct($request, $response, $args, $container) {
 		// create storage base on configuration
-		$db_storage = getenv('DB_STORAGE') ? getenv('DB_STORAGE') : '\MyAPI\Storages\MedooStorage';
+		$db_storage = getenv('DB_STORAGE') ? getenv('DB_STORAGE') : '\MyAPI\Lib\Storages\MedooStorage';
 		$dbinfo = $container->get('settings')['dbinfo'];
 		$this->storage = new $db_storage($dbinfo);
 		$this->request = $request;
@@ -18,7 +18,7 @@ class Controller {
 		$this->args = $args;
 		$this->container = $container;
 		$this->util = new Util();
-		$this->authHelper = new \MyAPI\Helpers\AuthHelper();
+		$this->authHelper = new \MyAPI\Lib\AuthHelper();
 		$app->env['MYAPP_HOSTNAME'] = $request->getUri()->getHost();
 	}
 	public function __get($property) {
@@ -52,7 +52,7 @@ class Controller {
 		return $this->response->withJson(['data' => $data, 'status' => 200], 200);
 	}
 	public function apiError($code, $mes = [], $lang = 'en') {
-		$messages = json_decode(file_get_contents(INC_ROOT . "/src/language/message.json"), true);
+		$messages = json_decode(file_get_contents(INC_ROOT . "/src/lib/language/message.json"), true);
 
 		if (empty($mes)) {
 

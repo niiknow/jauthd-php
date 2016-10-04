@@ -1,5 +1,5 @@
 <?php
-namespace MyAPI\Storages;
+namespace MyAPI\Lib\Storages;
 
 // Declare the interface 'iTemplate'
 interface iStorage {
