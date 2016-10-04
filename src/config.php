@@ -79,6 +79,8 @@ return [
 			"secret" => getenv("JWT_SECRET"),
 			"logger" => $container["logger"],
 			//"relaxed" => ["192.168.50.52"],
+			"cookie" => "myapi-token",
+			"attribute" => "jwt",
 			"error" => function ($request, $response, $arguments) {
 				$data["status"] = "error";
 				$data["message"] = $arguments["message"];

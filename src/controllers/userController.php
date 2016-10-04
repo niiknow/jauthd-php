@@ -20,7 +20,7 @@ class UserController extends Controller {
 	}
 }
 
-$app->group('/user', function () {
+$app->group('/api/user', function () {
 	$this->route(['POST'], '/profile/update', \MyAPI\Controllers\UserController::class, 'UpdateProfile')->setName('user.profile.update');
 	$this->route(['POST'], '/changepassword', \MyAPI\Controllers\UserController::class, 'ChangePassword')->setName('user.password.change');
 	$this->route(['POST'], '/role/add', \MyAPI\Controllers\UserController::class, 'AddRole')->setName('user.role.add');
