@@ -79,7 +79,7 @@ return [
 			"secret" => getenv("JWT_SECRET"),
 			"logger" => $container["logger"],
 			//"relaxed" => ["192.168.50.52"],
-			"cookie" => "myapi-token",
+			"cookie" => getenv('JWT_COOKIE'),
 			"attribute" => "jwt",
 			"error" => function ($request, $response, $arguments) {
 				$data["status"] = "error";
