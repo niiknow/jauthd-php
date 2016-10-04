@@ -69,7 +69,7 @@ return [
 			'auth' => getenv('MAIL_USERNAME') ? true : false,
 			'TLS' => false,
 			'from' => [
-				'name' => 'friends',
+				'name' => getenv('MAIL_FROM_NAME'),
 				'email' => getenv('MAIL_FROM'),
 			],
 		],

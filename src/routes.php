@@ -1,8 +1,13 @@
 <?php
 $jwtAuthenticator = new \Slim\Middleware\JwtAuthentication([
 	"secure" => false,
-	"attribute" => "jwt",
+	"cookie" => "myapi",
+	//"attribute" => "jwt",
 	"secret" => getenv('JWT_SECRET'),
+	"callback" => function ($request, $response, $arguments) use ($container) {
+		echo $arguments["decoded"];
+		$container["jwt"] = $arguments["decoded"];
+	},
 	"rules" => array(
 		new \Slim\Middleware\JwtAuthentication\RequestPathRule(array(
 			"path" => "/",
@@ -10,7 +15,7 @@ $jwtAuthenticator = new \Slim\Middleware\JwtAuthentication([
 				"/login",
 				"/auth/forgotpassword",
 				"/auth/login",
-				"/auth/resetpassword/{ftoken}",
+				"/auth/resetpassword/{rtoken}",
 				"/auth/signup",
 				"/auth/emailconfirm/{etoken}",
 				"/auth/google",

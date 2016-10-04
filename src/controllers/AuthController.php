@@ -37,6 +37,7 @@ class AuthController extends Controller {
 		// return token
 		$access_type = isset($params['access_type']) ? $params['access_type'] : 'offline';
 		$token = $this->authHelper->generateLoginToken($payload, null, $access_type);
+		setcookie("myapi", $token['access_token'], time() + 3600);
 		return $this->apiSuccess($token);
 	}
 
@@ -91,14 +92,6 @@ class AuthController extends Controller {
 	}
 
 	/**
-	 * [getResetPassword description]
-	 * @return [type] [description]
-	 */
-	public function getResetPassword() {
-		return $this->render('auth/resetpassword');
-	}
-
-	/**
 	 * send reset password token
 	 */
 	public function postResetPassword() {
@@ -112,14 +105,14 @@ class AuthController extends Controller {
 			return $this->apiError(500, $isValid);
 		}
 
-		$ftoken = $this->args['ftoken'];
+		$ftoken = $this->args['rtoken'];
 		$isValid = $this->authHelper->verifyForgotPasswordToken($ftoken);
 		if ($isValid) {
 			return $this->apiError(1002);
 		}
 
 		$token = $this->authHelper->decodeToken($ftoken);
-		$id = $token->getClaim('sub');
+		$id = $token['sub'];
 		$uri = $this->request->getUri();
 		$this->storage->updatePassword($this->queryParam('tenantCode'), $id, $params['password'], $uri->getBaseUrl());
 		return $this->apiSuccess($id);
@@ -130,14 +123,15 @@ class AuthController extends Controller {
 	 */
 	public function getTokenInfo() {
 		// must call tokeninfo with Bearer header
-		$token = $this->request->getAttribute('jwt');
+		//$token = $this->container['jwt'];
+		$token = 'hi';
 		return $this->apiSuccess($token);
 	}
 
 	/**
 	 * email verification
 	 */
-	public function getVerifyEmail() {
+	public function getConfirmEmail() {
 		$etoken = $this->args['etoken'];
 
 		$isValid = $this->authHelper->verifyEmailConfirmationToken($etoken);

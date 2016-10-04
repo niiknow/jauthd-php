@@ -10,7 +10,7 @@ class Controller {
 	protected $request, $response, $args, $container;
 	public function __construct($request, $response, $args, $container) {
 		// create storage base on configuration
-		$db_storage = getenv('DB_STORAGE') ? getenv('DB_STORAGE') : 'MyAPI\Storages\MedooStorage';
+		$db_storage = getenv('DB_STORAGE') ? getenv('DB_STORAGE') : '\MyAPI\Storages\MedooStorage';
 		$dbinfo = $container->get('settings')['dbinfo'];
 		$this->storage = new $db_storage($dbinfo);
 		$this->request = $request;
