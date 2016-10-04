@@ -15,7 +15,7 @@
 		"status": 500
 	},
 	"1003":{
-		"en_message": "Invalid Emai and/or Password",
+		"en_message": "Invalid Email and/or Password",
 		"ar_message": "",
 		"status": 500
 	},
