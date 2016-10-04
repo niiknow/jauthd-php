@@ -52,7 +52,7 @@ class Controller {
 		return $this->response->withJson(['data' => $data, 'status' => 200], 200);
 	}
 	public function apiError($code, $mes = [], $lang = 'en') {
-		$messages = json_decode(file_get_contents(INC_ROOT . "/src/lib/language/message.json"), true);
+		$messages = json_decode(file_get_contents(INC_ROOT . "/src/data/language/message.json"), true);
 
 		if (empty($mes)) {
 
@@ -72,5 +72,28 @@ class Controller {
 		}
 
 		return $this->response->withJson($response, $response['status']);
+	}
+
+	private function getTenantByHost() {
+		$uri = $this->request->getUri();
+		$host = strtolower($uri->getHost());
+		$host = str_replace('www.', '', $host);
+		$hosts = explode('.', $host);
+		if (count($hosts) > 1) {
+			return $hosts[0];
+		}
+		return '';
+	}
+	public function tenantCode() {
+		$tenantCode = $this->queryParam('tenantCode');
+		if (!isset($tenantCode)) {
+			$tenantCode = $this->getTenantByHost();
+		}
+
+		// replace all non-alphanumeric to be underscore
+		$tenant = preg_replace("[^a-z0-9_]", "_", $tenantCode);
+
+		// underscore are later handled by individual storage
+		return $tenant;
 	}
 }

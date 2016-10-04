@@ -67,19 +67,20 @@ return [
 		$jwtAuth = new \Slim\Middleware\JwtAuthentication([
 			"path" => "/api",
 			"passthrough" => [
-				"/auth/forgotpassword",
-				"/auth/login",
-				"/auth/resetpassword/{rtoken}",
-				"/auth/signup",
-				"/auth/emailconfirm/{etoken}",
-				"/auth/google",
-				"/auth/facebook",
-				"/auth/twitter",
-				"/auth/github"],
+				"/api/auth/forgotpassword",
+				"/api/auth/login",
+				"/api/auth/resetpassword/{rtoken}",
+				"/api/auth/signup",
+				"/api/auth/emailconfirm/{etoken}",
+				"/api/auth/google",
+				"/api/auth/facebook",
+				"/api/auth/twitter",
+				"/api/auth/github"],
 			"secret" => getenv("JWT_SECRET"),
 			"logger" => $container["logger"],
 			//"relaxed" => ["192.168.50.52"],
 			"cookie" => getenv('JWT_COOKIE'),
+			"algorithm" => ["HS256"],
 			"attribute" => "jwt",
 			"error" => function ($request, $response, $arguments) {
 				$data["status"] = "error";
@@ -89,7 +90,7 @@ return [
 					->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 			},
 			"callback" => function ($request, $response, $arguments) use ($container) {
-				$container["token"]->hydrate($arguments["decoded"]);
+				// $container["token"]->hydrate($arguments["decoded"]);
 			},
 		]);
 

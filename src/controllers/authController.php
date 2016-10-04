@@ -20,7 +20,7 @@ class AuthController extends Controller {
 		}
 
 		$id = $this->util->oid($params['email']);
-		$user = $this->storage->getUser($this->queryParam('tenantCode'), $id);
+		$user = $this->storage->getUser($this->tenantCode(), $id);
 
 		// validate password
 		$isValid = $this->util->comparePassword($params['password'], $user['password']);
@@ -34,10 +34,11 @@ class AuthController extends Controller {
 			'roles' => $user['roles'],
 		];
 
-		// return token
 		$access_type = isset($params['access_type']) ? $params['access_type'] : 'offline';
 		$token = $this->authHelper->generateLoginToken($payload, null, $access_type);
-		setcookie("myapi", $token['access_token'], time() + 3600);
+
+		// return token
+		setcookie(getenv('JWT_COOKIE'), $token['access_token'], time() + 3600);
 		return $this->apiSuccess($token);
 	}
 
@@ -55,7 +56,7 @@ class AuthController extends Controller {
 		}
 
 		$id = $this->util->oid($email);
-		$user = $this->storage->getUser($this->queryParam('tenantCode'), $id);
+		$user = $this->storage->getUser($this->tenantCode(), $id);
 		if (isset($user['id'])) {
 			$token = $this->authHelper->generateForgotPasswordToken($id);
 			// send reset email
@@ -81,9 +82,9 @@ class AuthController extends Controller {
 	 */
 	public function getMe() {
 		$token = $this->request->getAttribute('jwt');
-		$id = $token['sub'];
+		$id = $token->sub;
 
-		$user = $this->storage->getUser($this->queryParam('tenantCode'), $id);
+		$user = $this->storage->getUser($this->tenantCode(), $id);
 		if (isset($user['id'])) {
 			return $this->apiSuccess($user);
 		}
@@ -105,16 +106,11 @@ class AuthController extends Controller {
 			return $this->apiError(500, $isValid);
 		}
 
-		$ftoken = $this->args['rtoken'];
-		$isValid = $this->authHelper->verifyForgotPasswordToken($ftoken);
-		if ($isValid) {
-			return $this->apiError(1002);
-		}
-
-		$token = $this->authHelper->decodeToken($ftoken);
-		$id = $token['sub'];
+		$rtoken = $this->args['rtoken'];
+		$token = $this->authHelper->verifyForgotPasswordToken($rtoken);
+		$id = $token->sub;
 		$uri = $this->request->getUri();
-		$this->storage->updatePassword($this->queryParam('tenantCode'), $id, $params['password'], $uri->getBaseUrl());
+		$this->storage->updatePassword($this->tenantCode(), $id, $params['password'], $uri->getBaseUrl());
 		return $this->apiSuccess($id);
 	}
 
@@ -122,9 +118,7 @@ class AuthController extends Controller {
 	 * token verification
 	 */
 	public function getTokenInfo() {
-		// must call tokeninfo with Bearer header
-		//$token = $this->container['jwt'];
-		$token = 'hi';
+		$token = $this->request->getAttribute('jwt');
 		return $this->apiSuccess($token);
 	}
 
@@ -139,7 +133,7 @@ class AuthController extends Controller {
 			$token = $this->authHelper->decodeToken($etoken);
 			$id = $token->getClaim('sub');
 			$uri = $this->request->getUri();
-			$this->storage->updateEmailVerification($this->queryParam('tenantCode'), $id, $uri->getBaseUrl(), $token);
+			$this->storage->updateEmailVerification($this->tenantCode(), $id, $uri->getBaseUrl(), $token);
 			return $this->apiSuccess($id);
 		}
 
@@ -166,7 +160,7 @@ class AuthController extends Controller {
 		}
 
 		// do insert
-		$userId = $this->storage->insertUser($this->queryParam('tenantCode'), $params);
+		$userId = $this->storage->insertUser($this->tenantCode(), $params);
 
 		if ($userId) {
 			$emailVerifyTemplate = getenv('MAIL_VERIFY');

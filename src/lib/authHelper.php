@@ -93,7 +93,7 @@ class AuthHelper {
 	 */
 	public function generateToken($payload, $tokenType, $expiresIn = null) {
 		$tokenType = !isset($tokenType) ? '' : $tokenType;
-		$key = getenv('JWT_SECRET') + $tokenType;
+		$key = getenv('JWT_SECRET') . $tokenType;
 
 		$maxExpires = getenv('JWT_AUTH_AGE');
 		$pl = array_merge(['jti' => Uuid::uuid4()], $payload);
@@ -128,7 +128,7 @@ class AuthHelper {
 			$token['roles'] = $pl['roles'];
 		}
 
-		$jwt = \Firebase\JWT\JWT::encode($token, $key);
+		$jwt = \Firebase\JWT\JWT::encode($token, $key, 'HS256');
 
 		$result = [
 			'expires_in' => $expiresIn,
@@ -142,6 +142,6 @@ class AuthHelper {
 	 * allow for decoding of jwt
 	 */
 	private function decodeToken($token, $key) {
-		return \JWT::decode($jwt, $key, array('HS256'));
+		return \JWT::decode($jwt, $key, 'HS256');
 	}
 }
