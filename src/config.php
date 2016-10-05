@@ -40,6 +40,13 @@ return [
 	'validator' => function ($container) {
 		return new \MyAPI\Lib\Validator();
 	},
+	'tokenUtil' => function($container) {
+		return new \MyAPI\Lib\TokenUtil();
+	},
+	'authStorage' => function($container) {
+		$db_storage = getenv('DB_STORAGE') ? getenv('DB_STORAGE') : '\MyAPI\Lib\Storages\MedooStorage';
+		$this->storage = new $db_storage($container);
+	},
 	'errorHandler' => function ($container) {
 		return function ($request, $response, $exception) use ($container) {
 			$response = $response->withStatus(500);

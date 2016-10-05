@@ -21,11 +21,11 @@ class AuthController extends Controller {
 
 		$params = $this->request->getParsedBody();
 
-		$id = $this->util->oid($params['email']);
-		$user = $this->storage->getUser($this->tenantCode(), $id);
+		$id = $this->tokenUtil->oid($params['email']);
+		$user = $this->authStorage->getUser($this->tenantCode(), $id);
 
 		// validate password
-		$isValid = $this->util->comparePassword($params['password'], $user['passwd']);
+		$isValid = $this->tokenUtil->comparePassword($params['password'], $user['passwd']);
 		if (!$isValid) {
 			return $this->apiError(1003);
 		}
@@ -37,9 +37,9 @@ class AuthController extends Controller {
 		];
 
 		$access_type = isset($params['access_type']) ? $params['access_type'] : 'offline';
-		$token = $this->authHelper->generateLoginToken($payload, null, $access_type);
+		$token = $this->tokenUtil->generateLoginToken($payload, null, $access_type);
 
-		$this->storage->updateLogin($this->tenantCode(), $id, json_encode($this->request->getHeaders()));
+		$this->authStorage->updateLogin($this->tenantCode(), $id, json_encode($this->request->getHeaders()));
 
 		// return token
 		setcookie(getenv('JWT_COOKIE'), $token['access_token'], time() + $token['expires_in'], '/');
@@ -69,10 +69,10 @@ class AuthController extends Controller {
 		}
 
 		$email = $this->param('email');
-		$id = $this->util->oid($email);
-		$user = $this->storage->getUser($this->tenantCode(), $id);
+		$id = $this->tokenUtil->oid($email);
+		$user = $this->authStorage->getUser($this->tenantCode(), $id);
 		if (isset($user['userid'])) {
-			$token = $this->authHelper->generateForgotPasswordToken($id);
+			$token = $this->tokenUtil->generateForgotPasswordToken($id);
 
 			// send reset email
 			$emailResetTemplate = getenv('MAIL_PASSWORD_RESET');
@@ -86,7 +86,7 @@ class AuthController extends Controller {
 					function ($message) use ($user) {
 						$message->to($user->email);
 					});
-				$this->storage->forgotPassword($this->tenantCode(), $id, $uri->getBaseUrl(), $token);
+				$this->authStorage->forgotPassword($this->tenantCode(), $id, $uri->getBaseUrl(), $token);
 			}
 
 			return $this->apiSuccess($user);
@@ -101,7 +101,7 @@ class AuthController extends Controller {
 		$token = $this->request->getAttribute('jwt');
 		$id = $token->sub;
 
-		$user = $this->storage->getUser($this->tenantCode(), $id);
+		$user = $this->authStorage->getUser($this->tenantCode(), $id);
 		if (isset($user['userid'])) {
 			return $this->apiSuccess($user);
 		}
@@ -124,12 +124,12 @@ class AuthController extends Controller {
 		$params = $this->request->getParsedBody();
 
 		$rtoken = $this->queryParam('rtoken');
-		$token = $this->authHelper->verifyForgotPasswordToken($rtoken);
+		$token = $this->tokenUtil->verifyForgotPasswordToken($rtoken);
 		$id = $token->sub;
 		$uri = $this->request->getUri();
-		$this->storage->updatePassword($this->tenantCode(), $id, $params['password'], $uri->getBaseUrl());
+		$this->authStorage->updatePassword($this->tenantCode(), $id, $params['password'], $uri->getBaseUrl());
 
-		$user = $this->storage->getUser($this->tenantCode(), $id);
+		$user = $this->authStorage->getUser($this->tenantCode(), $id);
 		if (isset($user['userid'])) {
 			// send email
 			$emailChangeTemplate = getenv('MAIL_PASSWORD_CHANGE');
@@ -165,10 +165,10 @@ class AuthController extends Controller {
 	public function getConfirmEmail() {
 		$etoken = $this->queryParam('etoken');
 
-		$token = $this->authHelper->verifyEmailConfirmationToken($etoken);
+		$token = $this->tokenUtil->verifyEmailConfirmationToken($etoken);
 		$id = $token->sub;
 		$uri = $this->request->getUri();
-		$this->storage->updateEmailVerification($this->tenantCode(), $id, $uri->getBaseUrl(), $token);
+		$this->authStorage->updateEmailVerification($this->tenantCode(), $id, $uri->getBaseUrl(), $token);
 		return $this->apiSuccess($id);
 	}
 
@@ -188,12 +188,12 @@ class AuthController extends Controller {
 		$params = $this->request->getParsedBody();
 
 		// do insert
-		$user = $this->storage->insertUser($this->tenantCode(), $params);
+		$user = $this->authStorage->insertUser($this->tenantCode(), $params);
 
 		if (isset($user['userid'])) {
 			$emailVerifyTemplate = getenv('MAIL_VERIFY');
 			if ($emailVerifyTemplate) {
-				$token = $this->authHelper->generateEmailConfirmationToken($user['userid']);
+				$token = $this->tokenUtil->generateEmailConfirmationToken($user['userid']);
 				$uri = $this->request->getUri();
 				$profile = json_decode($user['userprofile']);
 

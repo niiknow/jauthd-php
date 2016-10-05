@@ -5,10 +5,12 @@ class MedooStorage implements iStorage {
 	/**
 	 * constructor, expect
 	 */
-	function __construct($dbinfo, $container) {
-		$this->util = new \MyAPI\Lib\Util();
-		$this->myDB = new \medoo($dbinfo);
+	function __construct($container) {
 		$this->container = $container;
+		$this->logDir = dirname(INC_ROOT . '/src/' . $this->container->settings['logger']['path']);;
+		$this->tokenUtil = $container['tokenUtil'];
+		$dbinfo = $container->get('settings')['dbinfo'];
+		$this->myDB = new \medoo($dbinfo);
 	}
 
 	/**
@@ -18,17 +20,16 @@ class MedooStorage implements iStorage {
 	 */
 	public function getTenantTable($tenantCode) {
 		$tenantCode = isset($tenantCode) ? $tenantCode : '';
-		$tableName = $tenantCode . '_user';
-		$logDir = dirname(INC_ROOT . '/src/' . $this->container->settings['logger']['path']);
-		$file = $logDir . '/medoo_' . $tableName . '.log';
+		$tableName = $tenantCode . 'myapi_user';
+		$file = $this->logDir . '/medoo_' . $tableName . '.log';
 
 		if (!file_exists($file)) {
 			// create the table
 			$myfile = fopen($file, "w");
-			fwrite($myfile, $this->util->now());
+			fwrite($myfile, $this->tokenUtil->now());
 			fclose($myfile);
 
-			$sql = "  CREATE TABLE " . $tableName . "(
+			$sql = "  CREATE TABLE $tableName (
     userid         char(36) NOT NULL,
     email          varchar(250) NOT NULL,
     passwd         varchar(250) NOT NULL,
@@ -82,9 +83,9 @@ class MedooStorage implements iStorage {
 	public function insertUser($tenantCode, $user) {
 		// make email
 		// echo json_encode($user);
-		$user['userid'] = $this->util->oid($user['email']);
-		$user['email'] = $this->util->strtolower($user['email']);
-		$user['passwd'] = $this->util->hashPassword($user['password']);
+		$user['userid'] = $this->tokenUtil->oid($user['email']);
+		$user['email'] = $this->tokenUtil->strtolower($user['email']);
+		$user['passwd'] = $this->tokenUtil->hashPassword($user['password']);
 		$profile = json_decode(isset($user['userprofile']) ? $user['userprofile'] : '{}', true);
 		$profile['lastName'] = isset($profile['lastName']) ? $profile['lastName'] : '';
 		$user['userprofile'] = isset($user['userprofile']) ? $user['userprofile'] : '{}';
@@ -101,7 +102,7 @@ class MedooStorage implements iStorage {
 				'userprofile' => $user['userprofile'],
 				'social' => $user['social'],
 				'secure' => $user['secure'],
-				'createAt' => $this->util->now(),
+				'createAt' => $this->tokenUtil->now(),
 			]);
 		// echo $user['userid'];
 		// var_dump($this->myDB->last_query());
@@ -142,7 +143,7 @@ class MedooStorage implements iStorage {
 	 * @return the storage object
 	 */
 	public function updateEmailVerification($tenantCode, $id, $baseUrl, $emailVerifyToken) {
-		$this->myDB->update($this->getTenantTable($tenantCode), ['emailConfirmAt' => $this->util->now()],
+		$this->myDB->update($this->getTenantTable($tenantCode), ['emailConfirmAt' => $this->tokenUtil->now()],
 			['AND' => ['userid' => $id]]);
 		return $this;
 	}
@@ -155,7 +156,7 @@ class MedooStorage implements iStorage {
 	 * @return the storage object
 	 */
 	public function updateLogin($tenantCode, $id, $loginLog) {
-		$this->myDB->update($this->getTenantTable($tenantCode), ['loginAt' => $this->util->now(), 'loginLog' => $loginLog],
+		$this->myDB->update($this->getTenantTable($tenantCode), ['loginAt' => $this->tokenUtil->now(), 'loginLog' => $loginLog],
 			['AND' => ['userid' => $id]]);
 		return $this;
 	}
@@ -169,7 +170,7 @@ class MedooStorage implements iStorage {
 	 */
 	public function updateProfile($tenantCode, $id, $profile) {
 		// update profile
-		$this->myDB->update($this->getTenantTable($tenantCode), ['userprofile' => $profile, 'updateAt' => $this->util->now()],
+		$this->myDB->update($this->getTenantTable($tenantCode), ['userprofile' => $profile, 'updateAt' => $this->tokenUtil->now()],
 			['AND' => ['userid' => $id]]);
 		return $this;
 	}
@@ -184,7 +185,7 @@ class MedooStorage implements iStorage {
 	 */
 	public function updatePassword($tenantCode, $id, $password, $baseUrl) {
 		// update password
-		$this->myDB->update($this->getTenantTable($tenantCode), ['passwd' => $password, 'updateAt' => $this->util->now()],
+		$this->myDB->update($this->getTenantTable($tenantCode), ['passwd' => $password, 'updateAt' => $this->tokenUtil->now()],
 			['AND' => ['userid' => $id]]);
 		return $this;
 	}
@@ -199,7 +200,7 @@ class MedooStorage implements iStorage {
 	 */
 	public function updateSocial($tenantCode, $id, $social) {
 		// update social
-		$this->myDB->update($this->getTenantTable($tenantCode), ['social' => $social, 'updateAt' => $this->util->now()],
+		$this->myDB->update($this->getTenantTable($tenantCode), ['social' => $social, 'updateAt' => $this->tokenUtil->now()],
 			['AND' => ['userid' => $id]]);
 		return $this;
 	}
@@ -214,7 +215,7 @@ class MedooStorage implements iStorage {
 	 */
 	public function updateSecure($tenantCode, $id, $secure) {
 		// update secure
-		$this->myDB->update($this->getTenantTable($tenantCode), ['secure' => $secure, 'updateAt' => $this->util->now()],
+		$this->myDB->update($this->getTenantTable($tenantCode), ['secure' => $secure, 'updateAt' => $this->tokenUtil->now()],
 			['AND' => ['userid' => $id]]);
 	}
 
@@ -228,7 +229,7 @@ class MedooStorage implements iStorage {
 	 */
 	public function updateRoles($tenantCode, $id, $roles) {
 		// update roles
-		$this->myDB->update($this->getTenantTable($tenantCode), ['roles' => $roles, 'updateAt' => $this->util->now()],
+		$this->myDB->update($this->getTenantTable($tenantCode), ['roles' => $roles, 'updateAt' => $this->tokenUtil->now()],
 			['AND' => ['userid' => $id]]);
 	}
 
@@ -241,7 +242,7 @@ class MedooStorage implements iStorage {
 	 */
 	public function updateSearchName($tenantCode, $id, $searchName) {
 		// update search Name
-		$this->myDB->update($this->getTenantTable($tenantCode), ['searchName' => $searchName, 'updateAt' => $this->util->now()],
+		$this->myDB->update($this->getTenantTable($tenantCode), ['searchName' => $searchName, 'updateAt' => $this->tokenUtil->now()],
 			['AND' => ['userid' => $id]]);
 	}
 

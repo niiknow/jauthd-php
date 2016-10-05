@@ -9,17 +9,10 @@ use MyAPI\Lib\Util as Util;
 class Controller {
 	protected $request, $response, $args, $container;
 	public function __construct($request, $response, $args, $container) {
-		// create storage base on configuration
-		$db_storage = getenv('DB_STORAGE') ? getenv('DB_STORAGE') : '\MyAPI\Lib\Storages\MedooStorage';
-		$dbinfo = $container->get('settings')['dbinfo'];
-		$this->storage = new $db_storage($dbinfo, $container);
 		$this->request = $request;
 		$this->response = $response;
 		$this->args = $args;
 		$this->container = $container;
-		$this->util = new Util();
-		$this->authHelper = new \MyAPI\Lib\AuthHelper();
-		$app->env['MYAPP_HOSTNAME'] = $request->getUri()->getHost();
 	}
 	public function __get($property) {
 		if ($this->container->{$property}) {
@@ -82,9 +75,13 @@ class Controller {
 		return '';
 	}
 	public function tenantCode() {
-		$tenantCode = $this->queryParam('tenantCode');
+		// use configuration to get single tenant setup
+		$tenantCode = getenv('APP_TENANT');
 		if (!isset($tenantCode)) {
-			$tenantCode = $this->getTenantByHost();
+			$tenantCode = $this->queryParam('tenantCode');
+			if (!isset($tenantCode)) {
+				$tenantCode = $this->getTenantByHost();
+			}
 		}
 
 		// replace all non-alphanumeric to be underscore
