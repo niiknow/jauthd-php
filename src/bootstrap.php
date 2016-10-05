@@ -12,8 +12,8 @@ use Slim\Container;
 $app = new MyApp(new Container(
 	include INC_ROOT . '/src/config.php'
 ));
-
 $container = $app->getContainer();
 
 require 'routes.php'
+
 ?>

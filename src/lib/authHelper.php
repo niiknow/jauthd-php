@@ -53,8 +53,8 @@ class AuthHelper {
 	 * @return a promise
 	 */
 	public function verifyToken($tokenString, $tokenType) {
-		$tokenType = $tokenType || '';
-		$key = getenv('JWT_SECRET') + $tokenType;
+		$tokenType = !isset($tokenType) ? '' : $tokenType;
+		$key = getenv('JWT_SECRET') . $tokenType;
 
 		return $this->decodeToken($tokenString, $key);
 	}
@@ -69,15 +69,15 @@ class AuthHelper {
 		$tokenPayload = $isPayload ? $user : __::Pick($user, getenv('JWT_INCLUDES'));
 		$access_token = $this->generateToken($tokenPayload, '', $expiresIn);
 		$result = [
-			'profile' => $tokenPayload,
+			'userprofile' => $tokenPayload,
 			'access_token' => $access_token['token'],
 			'expires_in' => $access_token['expires_in'],
 		];
 
 		if ($access_type === 'offline') {
 			$result['refresh_token'] = $this->generateToken([
-				'sub' => $user['id'],
-				'profile' => $tokenPayload,
+				'sub' => $user['userid'],
+				'userprofile' => $tokenPayload,
 			], 'refresh', getenv('JWT_REFRESH_AGE'))['token'];
 		}
 
@@ -119,7 +119,7 @@ class AuthHelper {
 		$token = array(
 			"iss" => 'test',
 			"jti" => $pl['jti'],
-			"sub" => isset($pl['id']) ? $pl['id'] : $pl['sub'],
+			"sub" => isset($pl['userid']) ? $pl['userid'] : $pl['sub'],
 			"exp" => time() + $expiresIn, // or 'ttl' => 60
 			"iat" => time(),
 			"nbf" => time());
@@ -142,6 +142,6 @@ class AuthHelper {
 	 * allow for decoding of jwt
 	 */
 	private function decodeToken($token, $key) {
-		return \JWT::decode($jwt, $key, 'HS256');
+		return \Firebase\JWT\JWT::decode($token, $key, array('HS256'));
 	}
 }

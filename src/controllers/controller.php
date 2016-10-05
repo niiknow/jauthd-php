@@ -12,7 +12,7 @@ class Controller {
 		// create storage base on configuration
 		$db_storage = getenv('DB_STORAGE') ? getenv('DB_STORAGE') : '\MyAPI\Lib\Storages\MedooStorage';
 		$dbinfo = $container->get('settings')['dbinfo'];
-		$this->storage = new $db_storage($dbinfo);
+		$this->storage = new $db_storage($dbinfo, $container);
 		$this->request = $request;
 		$this->response = $response;
 		$this->args = $args;
@@ -95,5 +95,14 @@ class Controller {
 
 		// underscore are later handled by individual storage
 		return $tenant;
+	}
+	public function getIPs() {
+		$ips = [];
+		foreach (array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR') as $key) {
+			$ip = $this->request->getHeader($key);
+			if (isset($ip)) {
+				$ips[$key] = $ip;
+			}
+		}
 	}
 }

@@ -69,16 +69,15 @@ return [
 			"passthrough" => [
 				"/api/auth/forgotpassword",
 				"/api/auth/login",
-				"/api/auth/resetpassword/{rtoken}",
+				"/api/auth/resetpassword/",
 				"/api/auth/signup",
-				"/api/auth/emailconfirm/{etoken}",
+				"/api/auth/emailconfirm/",
 				"/api/auth/google",
 				"/api/auth/facebook",
 				"/api/auth/twitter",
 				"/api/auth/github"],
 			"secret" => getenv("JWT_SECRET"),
 			"logger" => $container["logger"],
-			//"relaxed" => ["192.168.50.52"],
 			"cookie" => getenv('JWT_COOKIE'),
 			"algorithm" => ["HS256"],
 			"attribute" => "jwt",
@@ -127,20 +126,21 @@ return [
 				'name' => getenv('MAIL_FROM_NAME'),
 				'email' => getenv('MAIL_FROM'),
 			],
-		],
-		'mail' => function ($container) {
-			$mailer = new PHPMailer();
-			$mailer->isSMTP();
-			$mailer->Host = $container['config']['mail']['host'];
-			$mailer->SMTPAuth = $container['config']['mail']['auth'];
-			$mailer->SMTPSecure = $container['config']['mail']['TLS'];
-			$mailer->Port = $container['config']['mail']['port'];
-			$mailer->Username = $container['config']['mail']['username'];
-			$mailer->Password = $container['config']['mail']['password'];
-			$mailer->FromName = $container['config']['mail']['from']['name'];
-			$mailer->From = $container['config']['mail']['from']['email'];
-			$mailer->isHTML(true);
-			return new \MyAPI\Lib\Mail\Mailer($mailer, $container);
-		},
-	],
+		]],
+	'mail' => function ($container) {
+		$mailer = new PHPMailer();
+		$mailer->isSMTP();
+		$mailer->Host = $container['config']['mail']['host'];
+		$mailer->SMTPAuth = $container['config']['mail']['auth'];
+		$mailer->SMTPSecure = $container['config']['mail']['TLS'];
+		$mailer->Port = $container['config']['mail']['port'];
+		$mailer->Username = $container['config']['mail']['username'];
+		$mailer->Password = $container['config']['mail']['password'];
+		$mailer->FromName = $container['config']['mail']['from']['name'];
+		$mailer->From = $container['config']['mail']['from']['email'];
+		$mailer->isHTML(true);
+		return new \MyAPI\Lib\Mail\Mailer($mailer, $container);
+	},
 ];
+
+?>

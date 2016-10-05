@@ -21,3 +21,5 @@ class Site extends \Slim\App {
 		});
 	}
 }
+
+?>

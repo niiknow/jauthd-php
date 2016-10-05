@@ -63,6 +63,15 @@ interface iStorage {
 	public function updateEmailVerification($tenantCode, $id, $baseUrl, $emailVerifyToken);
 
 	/**
+	 * update last login
+	 * @param  $tenantCode tenant code
+	 * @param  $id the user id
+	 * @param  $loginLog data such as refererUrl or ipAddress
+	 * @return the storage object
+	 */
+	public function updateLogin($tenantCode, $id, $loginLog);
+
+	/**
 	 * update user profile
 	 * @param  $tenantCode tenant code
 	 * @param  $id the user id

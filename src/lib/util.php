@@ -43,6 +43,16 @@ class Util {
 	public function oid($email) {
 		$emailslug = \__::slug($email);
 		$uuid5 = Uuid::uuid5(Uuid::NAMESPACE_OID, $emailslug);
-		return $uuid5;
+		return $uuid5->toString();
+	}
+
+	/**
+	 * current date in ISO8601 format
+	 * @return current date
+	 */
+	public function now() {
+		$now = new \DateTime();
+		$nowFormatted = $now->format(\DateTime::ATOM); // ISO 8601
+		return $nowFormatted;
 	}
 }

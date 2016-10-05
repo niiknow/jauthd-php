@@ -1,16 +1,16 @@
-{% extends 'base.html.twig' %}
+{% extends '/email/base.twig' %}
 
-{% block subject %}{{ data->uri->getHost() }} - Verify Your Email{% endblock %}
+{% block subject %}{{ data.uri.getHost() }} - Verify Your Email{% endblock %}
 
-{% block content %}
-  <h4>Hey {{ data->user->profile->firstName }},</h4>
+{% block body_text %}
+  <h4>Hello {{ data.profile.firstName }},</h4>
 
   <p>
-      Thanks for signing up with us at {{ data->uri->getHost() }}!
+      Thanks for signing up with us at {{ data.uri.getHost() }}!
   </p>
 
   <p>
       In order to use your new account, you'll need to
-      <a href="{{ data->uri->getBaseUrl()}}/api/auth/emailconfirm/{{ data->token }}">confirm your email address.</a>
+      <a href="{{ data.uri.getBaseUrl() }}/api/auth/emailconfirm?etoken={{ data.token }}">confirm your email address.</a>
   </p>
 {% endblock %}

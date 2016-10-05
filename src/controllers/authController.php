@@ -23,22 +23,24 @@ class AuthController extends Controller {
 		$user = $this->storage->getUser($this->tenantCode(), $id);
 
 		// validate password
-		$isValid = $this->util->comparePassword($params['password'], $user['password']);
+		$isValid = $this->util->comparePassword($params['password'], $user['passwd']);
 		if (!$isValid) {
 			return $this->apiError(1003);
 		}
 
-		$profile = json_decode($user['profile']);
+		$profile = json_decode($user['userprofile']);
 		$payload = [
-			'id' => $id,
+			'userid' => $id,
 			'roles' => $user['roles'],
 		];
 
 		$access_type = isset($params['access_type']) ? $params['access_type'] : 'offline';
 		$token = $this->authHelper->generateLoginToken($payload, null, $access_type);
 
+		$this->storage->updateLogin($this->tenantCode(), $id, json_encode($this->request->getHeaders()));
+
 		// return token
-		setcookie(getenv('JWT_COOKIE'), $token['access_token'], time() + 3600);
+		setcookie(getenv('JWT_COOKIE'), $token['access_token'], time() + $token['expires_in']);
 		return $this->apiSuccess($token);
 	}
 
@@ -57,19 +59,22 @@ class AuthController extends Controller {
 
 		$id = $this->util->oid($email);
 		$user = $this->storage->getUser($this->tenantCode(), $id);
-		if (isset($user['id'])) {
+		if (isset($user['userid'])) {
 			$token = $this->authHelper->generateForgotPasswordToken($id);
+
 			// send reset email
 			$emailResetTemplate = getenv('MAIL_PASSWORD_RESET');
 			if ($emailResetTemplate) {
 				$uri = $this->request->getUri();
+				$profile = json_decode($user['userprofile']);
+
 				// send registration email
 				$this->mail()->send($emailResetTemplate,
-					['user' => $user, 'token' => $token, 'uri' => $uri],
+					['user' => $user, 'userprofile' => $profile, 'token' => urlencode($token['token']), 'uri' => $uri],
 					function ($message) use ($user) {
 						$message->to($user->email);
 					});
-				$this->storage->forgotPassword();
+				$this->storage->forgotPassword($this->tenantCode(), $id, $uri->getBaseUrl(), $token);
 			}
 
 			return $this->apiSuccess($user);
@@ -85,7 +90,7 @@ class AuthController extends Controller {
 		$id = $token->sub;
 
 		$user = $this->storage->getUser($this->tenantCode(), $id);
-		if (isset($user['id'])) {
+		if (isset($user['userid'])) {
 			return $this->apiSuccess($user);
 		}
 
@@ -106,11 +111,31 @@ class AuthController extends Controller {
 			return $this->apiError(500, $isValid);
 		}
 
-		$rtoken = $this->args['rtoken'];
+		$rtoken = $this->queryParam('rtoken');
 		$token = $this->authHelper->verifyForgotPasswordToken($rtoken);
 		$id = $token->sub;
 		$uri = $this->request->getUri();
 		$this->storage->updatePassword($this->tenantCode(), $id, $params['password'], $uri->getBaseUrl());
+
+		$user = $this->storage->getUser($this->tenantCode(), $id);
+		if (isset($user['userid'])) {
+			// send email
+			$emailChangeTemplate = getenv('MAIL_PASSWORD_CHANGE');
+			if ($emailChangeTemplate) {
+				$uri = $this->request->getUri();
+				$profile = json_decode($user['userprofile']);
+
+				// send registration email
+				$this->mail()->send($emailChangeTemplate,
+					['user' => $user, 'userprofile' => $profile, 'uri' => $uri],
+					function ($message) use ($user) {
+						$message->to($user->email);
+					});
+			}
+
+			return $this->apiSuccess($user);
+		}
+
 		return $this->apiSuccess($id);
 	}
 
@@ -126,18 +151,13 @@ class AuthController extends Controller {
 	 * email verification
 	 */
 	public function getConfirmEmail() {
-		$etoken = $this->args['etoken'];
+		$etoken = $this->queryParam('etoken');
 
-		$isValid = $this->authHelper->verifyEmailConfirmationToken($etoken);
-		if ($isValid) {
-			$token = $this->authHelper->decodeToken($etoken);
-			$id = $token->getClaim('sub');
-			$uri = $this->request->getUri();
-			$this->storage->updateEmailVerification($this->tenantCode(), $id, $uri->getBaseUrl(), $token);
-			return $this->apiSuccess($id);
-		}
-
-		return $this->apiError(1002);
+		$token = $this->authHelper->verifyEmailConfirmationToken($etoken);
+		$id = $token->sub;
+		$uri = $this->request->getUri();
+		$this->storage->updateEmailVerification($this->tenantCode(), $id, $uri->getBaseUrl(), $token);
+		return $this->apiSuccess($id);
 	}
 
 	/**
@@ -160,23 +180,24 @@ class AuthController extends Controller {
 		}
 
 		// do insert
-		$userId = $this->storage->insertUser($this->tenantCode(), $params);
+		$user = $this->storage->insertUser($this->tenantCode(), $params);
 
-		if ($userId) {
+		if (isset($user['userid'])) {
 			$emailVerifyTemplate = getenv('MAIL_VERIFY');
 			if ($emailVerifyTemplate) {
-				$token = $this->authHelper->generateEmailConfirmationToken($userId);
+				$token = $this->authHelper->generateEmailConfirmationToken($user['userid']);
 				$uri = $this->request->getUri();
+				$profile = json_decode($user['userprofile']);
 
 				// send registration email
 				$this->mail()->send($emailVerifyTemplate,
-					['user' => $user, 'token' => $token, 'uri' => $uri],
+					['user' => $user, 'userprofile' => $profile, 'token' => $token['token'], 'uri' => $uri],
 					function ($message) use ($user) {
-						$message->to($user->email);
+						$message->to($user['email']);
 					});
 			}
 
-			return $this->apiSuccess($userId);
+			return $this->apiSuccess($user['userid']);
 		} else {
 			return $this->apiError(1006);
 		}
@@ -186,9 +207,9 @@ class AuthController extends Controller {
 $app->group('/api/auth', function () {
 	$this->route(['POST'], '/forgotpassword', \MyAPI\Controllers\AuthController::class, 'postForgotPassword')->setName('auth.password.forgot');
 	$this->route(['POST'], '/login', \MyAPI\Controllers\AuthController::class, 'UserLogin')->setName('auth.login');
-	$this->route(['POST'], '/resetpassword/{rtoken}', \MyAPI\Controllers\AuthController::class, 'postResetPassword')->setName('auth.password.reset');
+	$this->route(['POST'], '/resetpassword', \MyAPI\Controllers\AuthController::class, 'postResetPassword')->setName('auth.password.reset');
 	$this->route(['POST'], '/signup', \MyAPI\Controllers\AuthController::class, 'SignUp')->setName('auth.signup');
-	$this->route(['GET'], '/emailconfirm/{etoken}', \MyAPI\Controllers\AuthController::class, 'getConfirmEmail')->setName('auth.email.confirm');
+	$this->route(['GET'], '/emailconfirm', \MyAPI\Controllers\AuthController::class, 'ConfirmEmail')->setName('auth.email.confirm');
 });
 
 $app->group('/api/auth', function () {

@@ -8,3 +8,5 @@ if (PHP_SAPI === 'cli-server' && $_SERVER['SCRIPT_FILENAME'] !== __FILE__) {
 
 require __DIR__ . '/../src/bootstrap.php';
 $app->run();
+
+?>
