@@ -2,8 +2,6 @@
 namespace MyAPI\Lib\Storages;
 
 class MedooStorage implements iStorage {
-	private static $tables = [];
-
 	/**
 	 * constructor, expect
 	 */
@@ -22,7 +20,7 @@ class MedooStorage implements iStorage {
 		$tenantCode = isset($tenantCode) ? $tenantCode : '';
 		$tableName = $tenantCode . '_user';
 		$logDir = dirname(INC_ROOT . '/src/' . $this->container->settings['logger']['path']);
-		$file = $logDir . '/table_' . $tableName . '.log';
+		$file = $logDir . '/medoo_' . $tableName . '.log';
 
 		if (!file_exists($file)) {
 			// create the table
@@ -84,8 +82,8 @@ class MedooStorage implements iStorage {
 	public function insertUser($tenantCode, $user) {
 		// make email
 		// echo json_encode($user);
-		$user['email'] = $this->util->strtolower($user['email']);
 		$user['userid'] = $this->util->oid($user['email']);
+		$user['email'] = $this->util->strtolower($user['email']);
 		$user['passwd'] = $this->util->hashPassword($user['password']);
 		$profile = json_decode(isset($user['userprofile']) ? $user['userprofile'] : '{}', true);
 		$profile['lastName'] = isset($profile['lastName']) ? $profile['lastName'] : '';
