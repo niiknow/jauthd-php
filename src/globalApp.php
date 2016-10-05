@@ -2,9 +2,10 @@
 namespace MyAPI;
 
 /**
- * Site is used to hook everything together.
+ * GlobalApp is used to hook everything together.
+ * This is like global.asax in .NET
  */
-class Site extends \Slim\App {
+class GlobalApp extends \Slim\App {
 	/**
 	 * Customized route mapping.
 	 */

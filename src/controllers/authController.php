@@ -81,7 +81,7 @@ class AuthController extends Controller {
 				$profile = json_decode($user['userprofile']);
 
 				// send registration email
-				$this->mail()->send($emailResetTemplate,
+				$this->mailer->send($emailResetTemplate,
 					['user' => $user, 'userprofile' => $profile, 'token' => urlencode($token['token']), 'uri' => $uri],
 					function ($message) use ($user) {
 						$message->to($user->email);
@@ -138,7 +138,7 @@ class AuthController extends Controller {
 				$profile = json_decode($user['userprofile']);
 
 				// send registration email
-				$this->mail()->send($emailChangeTemplate,
+				$this->mailer->send($emailChangeTemplate,
 					['user' => $user, 'userprofile' => $profile, 'uri' => $uri],
 					function ($message) use ($user) {
 						$message->to($user->email);
@@ -198,7 +198,7 @@ class AuthController extends Controller {
 				$profile = json_decode($user['userprofile']);
 
 				// send registration email
-				$this->mail()->send($emailVerifyTemplate,
+				$this->mailer->send($emailVerifyTemplate,
 					['user' => $user, 'userprofile' => $profile, 'token' => $token['token'], 'uri' => $uri],
 					function ($message) use ($user) {
 						$message->to($user['email']);
@@ -212,6 +212,8 @@ class AuthController extends Controller {
 	}
 }
 
+
+/* Auth: anonymous routes */
 $app->group('/api/auth', function () {
 	$this->route(['POST'], '/forgotpassword', \MyAPI\Controllers\AuthController::class, 'postForgotPassword')->setName('auth.password.forgot');
 	$this->route(['POST'], '/login', \MyAPI\Controllers\AuthController::class, 'UserLogin')->setName('auth.login');
@@ -220,6 +222,7 @@ $app->group('/api/auth', function () {
 	$this->route(['GET'], '/emailconfirm', \MyAPI\Controllers\AuthController::class, 'ConfirmEmail')->setName('auth.email.confirm');
 });
 
+/* Auth: authenticated routes */
 $app->group('/api/auth', function () {
 	$this->route(['GET'], '/me', \MyAPI\Controllers\AuthController::class, 'Me')->setName('auth.me');
 	$this->route(['GET'], '/logout', \MyAPI\Controllers\AuthController::class, 'UserLogout')->setName('auth.logout');

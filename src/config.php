@@ -1,6 +1,11 @@
 <?php
+// this link all the individual configurations together
+// Slim, DB, Email, View, etc....
+// think of it like an index for all configs
 
 return [
+
+/* SlimApp Settings */
 	'settings' => [
 		'determineRouteBeforeAppMiddleware' => false,
 		'displayErrorDetails' => true,
@@ -19,6 +24,22 @@ return [
 		],
 		'excludedRoutes' => [],
 	],
+/* Custom configuration */
+	'config' => [
+		'mail' => [
+			'type' => 'smtp',
+			'host' => getenv('MAIL_HOST'),
+			'port' => getenv('MAIL_PORT'),
+			'username' => getenv('MAIL_USERNAME'),
+			'password' => getenv('MAIL_PASSWORD'),
+			'auth' => getenv('MAIL_USERNAME') ? true : false,
+			'TLS' => false,
+			'from' => [
+				'name' => getenv('MAIL_FROM_NAME'),
+				'email' => getenv('MAIL_FROM'),
+			],
+		]],
+/* Various container injection: middlewares, logger, mailer, etc... */
 	'twig' => function ($container) {
 		$twig = new \Twig_Environment(new \Twig_Loader_Filesystem(__DIR__ . $container['settings']['viewTemplateDirectory']));
 		return $twig;
@@ -123,21 +144,7 @@ return [
 			},
 		]);
 	},
-	'config' => [
-		'mail' => [
-			'type' => 'smtp',
-			'host' => getenv('MAIL_HOST'),
-			'port' => getenv('MAIL_PORT'),
-			'username' => getenv('MAIL_USERNAME'),
-			'password' => getenv('MAIL_PASSWORD'),
-			'auth' => getenv('MAIL_USERNAME') ? true : false,
-			'TLS' => false,
-			'from' => [
-				'name' => getenv('MAIL_FROM_NAME'),
-				'email' => getenv('MAIL_FROM'),
-			],
-		]],
-	'mail' => function ($container) {
+	'mailer' => function ($container) {
 		$mailer = new PHPMailer();
 		$mailer->isSMTP();
 		$mailer->Host = $container['config']['mail']['host'];
