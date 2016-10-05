@@ -26,6 +26,7 @@ return [
 	],
 /* Custom configuration */
 	'config' => [
+		'azureStorageConnection' => getenv('AZURE_STORAGE_CONNECTION'),
 		'mail' => [
 			'type' => 'smtp',
 			'host' => getenv('MAIL_HOST'),
