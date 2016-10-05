@@ -2,22 +2,24 @@
 
 namespace MyAPI\Controllers;
 
+use Respect\Validation\Validator as Respect;
+
 class AuthController extends Controller {
 	/**
 	 * login to the API
 	 * @return jwt token
 	 */
 	public function postUserLogin() {
-		$params = $this->request->getParsedBody();
-
-		$isValid = $this->validator()->is_valid($params, [
-			'email' => 'required|valid_email',
-			'password' => 'required|max_len,100|min_len,8',
+		$validation = $this->validator->validate($this->request, [
+			'email' => Respect::notEmpty()->noWhitespace()->email(),
+			'password' => Respect::stringType()->length(8, 100),
 		]);
 
-		if ($isValid !== true) {
-			return $this->apiError(1003);
+		if ($validation->failed()) {
+			return $this->apiError(304, $validation->errors);
 		}
+
+		$params = $this->request->getParsedBody();
 
 		$id = $this->util->oid($params['email']);
 		$user = $this->storage->getUser($this->tenantCode(), $id);
@@ -40,23 +42,33 @@ class AuthController extends Controller {
 		$this->storage->updateLogin($this->tenantCode(), $id, json_encode($this->request->getHeaders()));
 
 		// return token
-		setcookie(getenv('JWT_COOKIE'), $token['access_token'], time() + $token['expires_in']);
+		setcookie(getenv('JWT_COOKIE'), $token['access_token'], time() + $token['expires_in'], '/');
 		return $this->apiSuccess($token);
+	}
+
+	/**
+	 * logout of the API
+	 */
+	public function getUserLogout() {
+		$token = $this->request->getAttribute('jwt');
+		$id = $token->sub;
+		setcookie(getenv('JWT_COOKIE'), null, -1, '/');
+		return $this->apiSuccess($id);
 	}
 
 	/**
 	 * send reset password token
 	 */
 	public function postForgotPassword() {
-		$email = $this->param('email');
-
-		$isValid = $this->validator()->is_valid(['email' => $email], [
-			'email' => 'required|valid_email',
+		$validation = $this->validator->validate($this->request, [
+			'email' => Respect::notEmpty()->noWhitespace()->email(),
 		]);
-		if ($isValid !== true) {
-			return $this->apiError(500, $isValid);
+
+		if ($validation->failed()) {
+			return $this->apiError(304, $validation->errors);
 		}
 
+		$email = $this->param('email');
 		$id = $this->util->oid($email);
 		$user = $this->storage->getUser($this->tenantCode(), $id);
 		if (isset($user['userid'])) {
@@ -101,15 +113,15 @@ class AuthController extends Controller {
 	 * send reset password token
 	 */
 	public function postResetPassword() {
-		$params = $this->request->getParsedBody();
-		$isValid = $this->validator()->is_valid($params, [
-			'password' => 'required|max_len,100|min_len,8',
-			'confirm' => 'required|max_len,100|min_len,8',
+		$validation = $this->validator->validate($this->request, [
+			'password' => Respect::stringType()->length(8, 100),
+			'passwordConfirm' => Respect::passwordConfirmation($request->getParam('password')),
 		]);
-
-		if ($isValid !== true) {
-			return $this->apiError(500, $isValid);
+		if ($validation->failed()) {
+			return $this->apiError(304, $validation->errors);
 		}
+
+		$params = $this->request->getParsedBody();
 
 		$rtoken = $this->queryParam('rtoken');
 		$token = $this->authHelper->verifyForgotPasswordToken($rtoken);
@@ -164,20 +176,16 @@ class AuthController extends Controller {
 	 * signup or register
 	 */
 	public function postSignUp() {
-		$params = $this->request->getParsedBody();
-		$validator = $this->validator();
-
-		$isValid = $validator->validate($params, [
-			"email" => "required|valid_email",
-			"password" => "required|max_len,100|min_len,8",
-			"profile" => "valid_json_string",
-			"social" => "valid_json_string",
-			"secure" => "valid_json_string",
+		$validation = $this->validator->validate($this->request, [
+			'email' => Respect::notEmpty()->noWhitespace()->email(),
+			'password' => Respect::stringType()->length(8, 100),
+			'passwordConfirm' => Respect::passwordConfirmation($request->getParam('password')),
 		]);
-
-		if ($isValid !== true) {
-			return $this->apiError(500, $isValid);
+		if ($validation->failed()) {
+			return $this->apiError(304, $validation->errors);
 		}
+
+		$params = $this->request->getParsedBody();
 
 		// do insert
 		$user = $this->storage->insertUser($this->tenantCode(), $params);
@@ -214,5 +222,6 @@ $app->group('/api/auth', function () {
 
 $app->group('/api/auth', function () {
 	$this->route(['GET'], '/me', \MyAPI\Controllers\AuthController::class, 'Me')->setName('auth.me');
+	$this->route(['GET'], '/logout', \MyAPI\Controllers\AuthController::class, 'UserLogout')->setName('auth.logout');
 	$this->route(['GET'], '/tokeninfo', \MyAPI\Controllers\AuthController::class, 'TokenInfo')->setName('auth.password.reset');
 });

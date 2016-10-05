@@ -33,9 +33,6 @@ class Controller {
 		$path = $path != null ? $path : 'home';
 		return $this->response->withRedirect($this->router()->pathFor($path));
 	}
-	public function validator() {
-		return new \GUMP();
-	}
 	public function router() {
 		return $this->container->router;
 	}

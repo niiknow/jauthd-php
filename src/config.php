@@ -37,6 +37,9 @@ return [
 		$logger->pushHandler($rotating);
 		return $logger;
 	},
+	'validator' => function ($container) {
+		return new \MyAPI\Lib\Validator();
+	},
 	'errorHandler' => function ($container) {
 		return function ($request, $response, $exception) use ($container) {
 			$response = $response->withStatus(500);
